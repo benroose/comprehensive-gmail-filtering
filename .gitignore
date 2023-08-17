@@ -5,6 +5,7 @@
 # Keep js and markdown
 !*.js
 !*.md
+!wiki/*
 !*.template
 !appscript.json
 

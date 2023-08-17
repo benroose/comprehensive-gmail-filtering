@@ -27,9 +27,9 @@ This project uses the following elements:
 
 - enable app scripts API  at https://script.google.com/home/usersettings
 
-- [Generate an SSH key](https://gitlab.cee.redhat.com/help/ssh/README#generating-a-new-ssh-key-pair)
+- [Generate an SSH key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)
 
-- [Add the key to your gitlab profile](https://gitlab.cee.redhat.com/profile/keys)
+- [Add the key to your github profile](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)
 
 ## Step 1 - Clone the Souce
 
@@ -109,4 +109,4 @@ GAS will prompt you to accept the permissions the script needs to operate. Revie
 
 ## Step 6
 
-Set up your MyFilters.js file with the [Minimum Config](Minimum Config)
+Set up your MyFilters.js file with the [Minimum Config](minimum-config.md)

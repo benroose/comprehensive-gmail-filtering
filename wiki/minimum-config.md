@@ -1,4 +1,4 @@
-**Note:** *Before you begin configuring you will need to complete the [Project Installation](Installation) steps.*
+**Note:** *Before you begin configuring you will need to complete the [Project Installation](installation.md) steps.*
 
 ## Getting Comfortable
 For the first setup until you become comfortable with the way the script works, it is best to start with just processing mailing lists. This keeps your `MyFilters.js` simple and will possibly remove the biggest annoyance with mentally parsing your inbox and/or setting up rule after rule. Here is how you do that.
@@ -91,3 +91,5 @@ If you didn't get an error, then you can watch the progress of the script and se
 
 **If you get an exception** share your project with me, and open a ticket with the function you are running, the exception you are getting, where the exception shows up, and the exact text of it. I'll have a look.
 
+## Next Steps
+Follow along with [Guided Rules](guided-rules.md) to start writing your own filters.
