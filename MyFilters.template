@@ -1,0 +1,258 @@
+function setVariables() {
+  /** ********** RETENTION NOTE **********
+   * Think carefully about security and company policy before you apply retention labels
+   * 
+   * Read the README
+   * 
+   * To use, run the "install" function and all needed triggers will be created
+   * To remove, run the "uninstall" function
+   * 
+   */
+
+  /** These are really important variables, read all this before changing them
+   * -a note about balancing-
+   * BATCH_SIZE is the max digestable amount in single pass
+   * 500 is the max allowable - don't use that. EVER.
+   * Use BATCH_SIZE = 50
+   * The smaller size is  more efficient even if it causes multiple passes
+   * the execution time rises exponentially (still working out why)
+   * 10x batches of 50 takes MUCH less time then 1x batch of 500
+   * 
+   * INBOX_PROCESS_INTERVAL is the repeating schedule of a "first" pass
+   * Interval of 5 is a reasonable upper limit
+   * 3 might work for low-volume inboxes
+   * 1 is too small and will likely cause failures in the scheduling
+   * 
+   * RESCHEDULE_DELAY = 60
+   * The delay is the time (in seconds) betweek pass "1" and pass "2" ... pass "N"
+   * it needs to remain very small so that a second pass (or a 3rd)
+   * */
+
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+// [                    TIMING                      ]
+// +------------------------------------------------+
+  BATCH_SIZE = 50;//pretty much never change this
+
+  // maintenance level processing
+  INBOX_PROCESS_INTERVAL = 5;
+  RESCHEDULE_DELAY = 60;
+  // if you average more than 1 messages every 6 seconds
+  // I don't think I can help you. (you definitely need help)
+  // you might check into a server-based solution to do local IMAP processing
+
+// +------------------------------------------------+
+  SHOULD_REPROCESS_ALL_EMAILS = false;
+    // this will take a very very long time, and then likely fail on ratelimits
+    // it is very difficult to test this effectively on my inbox because I've already tidied up
+
+// +------------------------------------------------+
+  PROCESSED_MATCHED_LABEL = "m";
+  PROCESSED_UNMATCHED_LABEL = PROCESSED_MATCHED_LABEL+"/u";
+  PROCESSED_FAILED_LABEL = PROCESSED_MATCHED_LABEL+"/Exception"
+
+// +------------------------------------------------+
+  if (SHOULD_REPROCESS_ALL_EMAILS) {
+    INBOX_PROCESS_INTERVAL = 10;
+    RESCHEDULE_DELAY = 3*60; // aim for speed, but avoid ratelimits
+    // 50 threads every 3 minutes = 24,000 threads/day
+    // <=15 gmail calls/message
+    // ~10 messages/thread
+    // 3.6M API calls / 24 hours
+    SEARCH_QUERY = "in:all\
+      !(label:"+PROCESSED_MATCHED_LABEL+")\
+      !(label:"+PROCESSED_UNMATCHED_LABEL+")\
+      !(label:"+PROCESSED_FAILED_LABEL+")";
+  } else {
+    // this will be the default query
+    SEARCH_QUERY = "in:all newer_than:1h\
+      !(label:"+PROCESSED_MATCHED_LABEL+")\
+      !(label:"+PROCESSED_UNMATCHED_LABEL+")\
+      !(label:"+PROCESSED_FAILED_LABEL+")";
+  }
+
+// +------------------------------------------------+
+// [               end TIMING end                   ]
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+
+
+
+
+
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+// [                 VARIABLES                      ]
+// +------------------------------------------------+
+SHOULD_PROCESS_MAILING_LISTS = true;
+SHOULD_ARCHIVE_MAILING_LISTS = false;
+MAILING_LIST_PARENT_LABEL = "lists/";
+
+//+------------------------------------------------+
+//off by default
+SHOULD_PROCESS_AUTOMATED = false;
+AUTOMATED_PARENT_LABEL = "deletable/";
+
+// +------------------------------------------------+
+//off by default
+SHOULD_PROCESS_CHATS = false;
+CHAT_LABEL = AUTOMATED_PARENT_LABEL+"chats";
+
+// +------------------------------------------------+
+//off by default
+SHOULD_PROCESS_SALESFORCE = false;
+SFDC_GENERIC_PARENT_LABEL = "salesforce/";
+
+// +------------------------------------------------+
+//off by default
+SHOULD_LABEL_CASE_NUMBERS = false;
+CASE_NUMBER_PARENT_LABEL = "filed/";
+
+// +------------------------------------------------+
+//off by default
+SHOULD_APPLY_RETENTION = false;
+RETENTION_PARENT_LABEL = "x/";
+
+// +------------------------------------------------+
+//off by default
+SHOULD_RENAME_TAGS = false;
+
+// +------------------------------------------------+
+//off by default
+SHOULD_PRUNE_LABELS = false;
+
+// +------------------------------------------------+
+//off by default
+//removes the gmail automated 'important' mark (I'll decide what's important, thank you)
+SHOULD_UNIMPORTANT_LABELS = false;
+
+// +------------------------------------------------+
+EXPENSE_REPORT_LABEL = "expense&travel";
+WATCHLIST_LABEL = "W";//not implemented
+
+// +------------------------------------------------+
+// [             end VARIABLES end                  ]
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+
+
+
+
+
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+// [                  RETENTION                     ]
+// +------------------------------------------------+
+
+//
+  MAILING_LIST_RETENTION_LABEL = RETENTION_PARENT_LABEL+"18m";
+  DEFAULT_AUTOMATED_RETENTION_LABEL = RETENTION_PARENT_LABEL+"1y";
+
+  PARENT_LABELS_TO_PRUNE = [
+    MAILING_LIST_PARENT_LABEL,
+    CASE_NUMBER_PARENT_LABEL,
+    AUTOMATED_PARENT_LABEL,
+  ];
+
+// +------------------------------------------------+
+// [              end RETENTION end                 ]
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+
+
+
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+// [      DO NOT USE "-" IN YOUR LABEL NAMES        ]
+// [     GOOGLE DOES NOT HANDLE THEM CORRECTLY      ]
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+
+
+
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+// [              STANDARD FILTERS                  ]
+// +------------------------------------------------+
+  /**
+    * syntax:
+    *
+    * Label:"string",
+    * Header:"string"
+    * And:boolean
+    * Values:["string1","string2"],
+    * 
+    * Value must be in the form of a string array even if you only have 1 value
+    * optional properties:
+    *
+    * Archive:boolean
+    * MarkRead:boolean
+    * Delete:boolean
+    * Star:boolean
+    * Important:boolean
+    **/
+  StandardMessageFilters = [
+    {Label:"Clients/ABCcorp", Header:"To", Values:["customer@abccorp.com"]},
+    {Label:"special", Header:"To", And:true, Values:["my.name","@domain.com"]},
+  ];
+
+// +------------------------------------------------+
+  AutomatedMessageFilters = [
+    //default retention applies if not specified
+    {Label:AUTOMATED_PARENT_LABEL+"Calendar",   Recipient:"calendar-notification@google.com", Retention:"5d"},
+  ];
+
+// +------------------------------------------------+
+//some mailing lists (especially google news alerts) don't come in with sensible mailing list names
+  TagsToRename = [
+    {OldLabel:MAILING_LIST_PARENT_LABEL+"1234567890123456789.alerts.google.com",
+      NewLabel:MAILING_LIST_PARENT_LABEL+"tag_that_makes_sense"},
+  ];
+
+  //TODO: advanced tag logic
+  // if email(tag1, tag2, tag3) then action = X
+  //NOT IMPLEMENTED YET
+
+
+// +------------------------------------------------+
+// [              end STANDARD end                  ]
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+
+
+
+
+
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+// [                  SALESFORCE                    ]
+// +------------------------------------------------+
+
+  SFDC_POSTMASTER = "postmaster@salesforce.com";
+  SFDC_ACCOUNT_NUMBER_HEADER_NAME = "X-SFDC-X-Account-Number";
+  SFDC_CASE_NUMBER_HEADER = "X-SFDC-X-Case-Number";
+
+  /**
+    * Syntax:
+    * 
+    * Label:"string"
+    * Header:"string"
+    * Values:["string1","string2"]}
+
+    * Value must be in the form of a string array even if you only have 1 value
+    * optional properties:
+    * 
+    * Archive:boolean
+    * MarkRead:boolean
+    * Delete:boolean
+    * Star:boolean
+    **/
+  SalesforceMessageFilters = [
+    {Label:"clients/bigone", Header:"X-SFDC-X-Account-Number", Values:["123456"], Star:true },
+
+    //Special tags
+    {Label:"sbr/team", Header:"X-SFDC-X-SBR-Group", Values:["My Product"] },
+
+    // Special facts
+    {Label:"heat/sev1", Header:"X-SFDC-X-Severity", Values:["1 (Urgent)"], Important:true},
+  ];
+
+
+// +------------------------------------------------+
+// [              end SALESFORCE end                ]
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+
+
+
+
+
+} // end of setVariables
