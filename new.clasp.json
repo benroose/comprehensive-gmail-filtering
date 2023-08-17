@@ -1,0 +1,11 @@
+{
+  "scriptId":"YOUR_SCRIPT_ID_HERE",
+  "rootDir":".",
+  "filePushOrder": ["MyFilters.js",
+    "MagicFunctions.js",
+    "SalesforceFilters.js",
+    "StandardFilters,js",
+    "RetentionPolicy.js",
+    "MAIN.js"]
+}
+
