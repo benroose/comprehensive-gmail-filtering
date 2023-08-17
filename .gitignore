@@ -6,6 +6,7 @@
 !*.js
 !*.md
 !*.template
+!appscript.json
 
 # This will be your file with your filters
 # don't put it back in the repo

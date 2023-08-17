@@ -1,0 +1,112 @@
+## Step 0 - Prerequisites
+
+This project uses the following elements:
+
+- Google App Script (GAS) system - Which has full access to email headers
+
+- Node.js - you must install from the correct source.
+
+    ```
+    $ sudo dnf install -y gcc-c++ make
+    $ sudo curl -sL https://rpm.nodesource.com/setup_12.x | sudo -E bash -
+    $ sudo dnf install nodejs --enablerepo=nodesource
+    ```
+    
+    If the source repo isn't "nodesource" then disable the repo dnf is trying to install from
+
+- A tool called `clasp`
+
+    ~~~ 
+    $ sudo npm install @google/clasp -g
+    ~~~
+
+    - The offical guide is here [https://developers.google.com/apps-script/guides/clasp]
+    - The source code is here [https://github.com/google/clasp]
+
+- `git` - I will not explain this to you.
+
+- enable app scripts API  at https://script.google.com/home/usersettings
+
+- [Generate an SSH key](https://gitlab.cee.redhat.com/help/ssh/README#generating-a-new-ssh-key-pair)
+
+- [Add the key to your gitlab profile](https://gitlab.cee.redhat.com/profile/keys)
+
+## Step 1 - Clone the Souce
+
+Prepare the auth token for clasp and clone the git project.
+
+~~~ 
+$ clasp login
+// this will kick off a process to get your auth token
+// you will use your 'username@redhat.com' gmail account
+$ cd Huntress
+// clone this repo into your project
+$ git clone git@gitlab.cee.redhat.com:phagerma/Filterbeast.git .
+~~~
+
+## Step 2 - Create the GAS Project
+
+Create an empty project in your GAS system. Give your beast a **creative** and **colorful** name. In this example we'll use "Huntress".
+
+~~~
+// create your Script project
+$ clasp create --title Huntress --type standalone --rootDir .
+~~~
+
+## Step 3 - File Upload Order
+
+**THIS IS VERY IMPORTANT TO DO BEFORE CONTINUING**
+
+Do **not** skip this step!
+
+Modify your `.clasp.json` file to specify the order of upload. *If you do not do this your script will error out with reference exceptions*
+
+Open your .clasp.json file and copy the value of `scriptId`, it will be a long mixed character value, then execute `mv .clasp.json .clasp.json.ignore'.
+
+Open the `new.clasp.json` file and replace `YOUR_SCRIPT_ID_HERE` with your `scriptId` value, then execute `mv new.clasp.json .clasp.json`
+
+The results should look like this:
+
+~~~
+$ cat .clasp.json.ignore
+{"scriptId":"ABCabc123xyz","rootDir":"."}
+
+$ cat .clasp.json
+{"scriptId":"ABCabc123xyz", "rootDir":".",
+  "filePushOrder": ["MyFilters.js",
+    "MagicFunctions.js",
+    "SalesforceFilters.js",
+    "StandardFilters,js",
+    "RetentionPolicy.js",
+    "MAIN.js"]
+}
+~~~
+
+## Step 4 - Local Environment
+
+Prepare your local environment for building your filters by copying the filter template. By default all features are disabled and no automatic actions are taken upon upload so it is safe to push the contents of your new beast into GAS.
+
+~~~
+$ cp MyFilters.template MyFilters.js
+
+// push the files up to your new GAS project
+$ clasp push
+~~~
+
+## Step 5 - Permissions
+
+Your local changes to the `.clasp.json` will overwrite the values created with the `clasp create` command and you have to verify you want to accept the changes. Choose yes.
+
+~~~
+? Manifest file has been updated. Do you want to push and overwrite? (y/N) 
+~~~
+
+Login (using the same account as above) to [https://script.google.com/u/0/home/my] and edit your Filterbeast project. (hover and click the pencil icon)
+
+Select the `MyFilters.gs` item at the left and in the dropdown below the toolbar choose the `setVariables` function. Click the play button.
+
+GAS will prompt you to accept the permissions the script needs to operate. Review them and accept them. It may give you the scary message about being unsigned/unsafe, however you have all the source code, so you can see for yourself nothing nefarious is going on.
+
+## Step 6
+
+Set up your MyFilters.js file with the [Minimum Config](Minimum Config)
