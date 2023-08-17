@@ -53,4 +53,4 @@ Install it to your GAS. Run the 'Install' function and accept the permissions.
 
 The magic will happen automatically. The Filterbeast will schedule itself to run at intervals. By default the inbox process kicks off every 5 minutes, and the retention process is nightly. Only the features you have enabled will process though.
 
-Additional instructions are found in the [wiki](https://gitlab.cee.redhat.com/phagerma/Filterbeast/-/wikis/home)
+Additional instructions are found in the [wiki](/wiki/home.md)
