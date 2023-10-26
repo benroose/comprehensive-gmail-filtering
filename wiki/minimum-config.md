@@ -11,8 +11,9 @@ Find the `VARIABLES` section and choose the value for `MAILING_LIST_PARENT_LABEL
 // +================================================+
 // [                 VARIABLES                      ]
 // +------------------------------------------------+
-SHOULD_PROCESS_MAILING_LISTS=true;
-MAILING_LIST_PARENT_LABEL="L/";
+SHOULD_PROCESS_MAILING_LISTS = true;
+SHOULD_ARCHIVE_MAILING_LISTS = false;
+MAILING_LIST_PARENT_LABEL = "lists/";
 
 ...snip...
 

@@ -37,9 +37,6 @@ function MatchSalesforceFilters(MAP, Thread, Email) {
         
         if (loopsMatched > 0) {
           Thread.addLabel(_getLabel(rule.Label));
-          if (SHOULD_APPLY_RETENTION) {
-            Thread.addLabel(_getLabel(RETENTION_PARENT_LABEL+"1m"));
-          }
           if (rule.Archive) { 
             Thread.moveToArchive();
           }
@@ -55,8 +52,13 @@ function MatchSalesforceFilters(MAP, Thread, Email) {
           if (rule.Important) {
             Thread.markImportant();
           }
-          if (rule.Retention != null && SHOULD_APPLY_RETENTION) {
-            Thread.addLabel(_getLabel(RETENTION_PARENT_LABEL+rule.Retention));
+          if (SHOULD_APPLY_RETENTION) {
+            if (rule.Retention != null) {
+              Thread.addLabel(_getLabel(RETENTION_PARENT_LABEL+rule.Retention));
+            }
+            if (rule.Retention == "0") {
+              Thread._removeRetentionLabels();
+            }
           }
           rulesMatched++;
   

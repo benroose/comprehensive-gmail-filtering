@@ -81,50 +81,60 @@ function setVariables() {
 // +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
 // [                 VARIABLES                      ]
 // +------------------------------------------------+
-SHOULD_PROCESS_MAILING_LISTS = true;
-SHOULD_ARCHIVE_MAILING_LISTS = false;
+// "*_PARENT_LABEL" variables should end with a trailing "/"
+// "*_LABEL" (without "_PARENT_") should not
+// +------------------------------------------------+
+SHOULD_PROCESS_MAILING_LISTS = true;                // will automatically create labels for mailing list emails
+SHOULD_ARCHIVE_MAILING_LISTS = false;               // will automatically archive any emails received on mailing lists
 MAILING_LIST_PARENT_LABEL = "lists/";
 
-//+------------------------------------------------+
+//+-------------------------------------------------+
 //off by default
-SHOULD_PROCESS_AUTOMATED = false;
+SHOULD_PROCESS_AUTOMATED = false;                   // processes filters contained in "AutomatedMessageFilters"
+                                                    // recommended use is for things like calendar responses, noreply emails, and similar single-use emails
 AUTOMATED_PARENT_LABEL = "deletable/";
 
 // +------------------------------------------------+
 //off by default
-SHOULD_PROCESS_CHATS = false;
+SHOULD_PROCESS_CHATS = false;                       // missed chats are placed inside the inbox and look like emails
+                                                    // this will label them so you can more easily manage them
 CHAT_LABEL = AUTOMATED_PARENT_LABEL+"chats";
 
 // +------------------------------------------------+
 //off by default
-SHOULD_PROCESS_SALESFORCE = false;
+SHOULD_PROCESS_SALESFORCE = false;                  // process filters contained in "SalesforceMessageFilters"
 SFDC_GENERIC_PARENT_LABEL = "salesforce/";
 
 // +------------------------------------------------+
 //off by default
-SHOULD_LABEL_CASE_NUMBERS = false;
+SHOULD_LABEL_CASE_NUMBERS = false;                  // special use case for SFDC case update emails
+                                                    // update "SFDC_CASE_NUMBER_HEADER" to reflect the correct X-Header your system uses
 CASE_NUMBER_PARENT_LABEL = "filed/";
 
 // +------------------------------------------------+
 //off by default
-SHOULD_APPLY_RETENTION = false;
+SHOULD_APPLY_RETENTION = false;                     // enables the nightly retention process to prune emails older than the specified flags.
+                                                    // any valid sublabel can be made manually and retention will process it
+                                                      // it must be in the format of "[0-9]*[dmy]"
+                                                      // ex: "x/3d" = delete after 3 days
+                                                      // ex: "x/6m" = delete after 6 months
+                                                      // ex: "x/7y" = delete after 7 years
 RETENTION_PARENT_LABEL = "x/";
 
 // +------------------------------------------------+
 //off by default
-SHOULD_RENAME_TAGS = false;
+SHOULD_RENAME_TAGS = false;                         // process rules found in "TagsToRename"
 
 // +------------------------------------------------+
 //off by default
-SHOULD_PRUNE_LABELS = false;
+SHOULD_PRUNE_LABELS = false;                        // deletes empty labels
+                                                    // recommended when "SHOULD_APPLY_RETENTION = true"
 
 // +------------------------------------------------+
 //off by default
-//removes the gmail automated 'important' mark (I'll decide what's important, thank you)
-SHOULD_UNIMPORTANT_LABELS = false;
+SHOULD_UNIMPORTANT_LABELS = false;                  // removes the gmail automated 'important' mark
 
 // +------------------------------------------------+
-EXPENSE_REPORT_LABEL = "expense&travel";
 WATCHLIST_LABEL = "W";//not implemented
 
 // +------------------------------------------------+
@@ -136,13 +146,29 @@ WATCHLIST_LABEL = "W";//not implemented
 
 
 // +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+// [             CUSTOM VARIABLES                   ]
+// +------------------------------------------------+
+// In this section you can also create your own labels to be used as shorthand in your filter entries
+EXPENSE_REPORT_LABEL = "expense&travel";
+
+// +------------------------------------------------+
+// [          end CUSTOM VARIABLES end              ]
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+
+
+
+
+
+// +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
 // [                  RETENTION                     ]
 // +------------------------------------------------+
-
-//
+// This defines the default retention period for mailing lists processed by "SHOULD_PROCESS_MAILING_LISTS = true"
   MAILING_LIST_RETENTION_LABEL = RETENTION_PARENT_LABEL+"18m";
+
+// This defines the default retention period for automated messages processed by "SHOULD_PROCESS_AUTOMATED = true"
   DEFAULT_AUTOMATED_RETENTION_LABEL = RETENTION_PARENT_LABEL+"1y";
 
+// This narrows the scope of parent labels to remove empty sublabels from when "SHOULD_PRUNE_LABELS = true"
   PARENT_LABELS_TO_PRUNE = [
     MAILING_LIST_PARENT_LABEL,
     CASE_NUMBER_PARENT_LABEL,
@@ -169,9 +195,15 @@ WATCHLIST_LABEL = "W";//not implemented
     * syntax:
     *
     * Label:"string",
-    * Header:"string"
-    * And:boolean
+    * Header:"string",
+    * And:boolean, // "OR" operation on value list is implied otherwise
     * Values:["string1","string2"],
+    * Retention:"string", // must be in the format of "[0-9]*[dmy]|0"
+      // ex: "3d" = delete after 3 days
+      // ex: "6m" = delete after 6 months
+      // ex: "7y" = delete after 7 years
+      // special case
+      // ex: "0"  = remove any previously applied retention labels
     * 
     * Value must be in the form of a string array even if you only have 1 value
     * optional properties:
@@ -183,7 +215,7 @@ WATCHLIST_LABEL = "W";//not implemented
     * Important:boolean
     **/
   StandardMessageFilters = [
-    {Label:"Clients/ABCcorp", Header:"To", Values:["customer@abccorp.com"]},
+    {Label:"Clients/ABCcorp", Header:"To", Values:["customer@abccorp.com"], Retention:"7y"},
     {Label:"special", Header:"To", And:true, Values:["my.name","@domain.com"]},
   ];
 
@@ -194,7 +226,7 @@ WATCHLIST_LABEL = "W";//not implemented
   ];
 
 // +------------------------------------------------+
-//some mailing lists (especially google news alerts) don't come in with sensible mailing list names
+//some mailing lists (especially google news alerts) arrive as mailing lists, but don't come in with sensible mailing list names
   TagsToRename = [
     {OldLabel:MAILING_LIST_PARENT_LABEL+"1234567890123456789.alerts.google.com",
       NewLabel:MAILING_LIST_PARENT_LABEL+"tag_that_makes_sense"},
@@ -237,7 +269,7 @@ WATCHLIST_LABEL = "W";//not implemented
     * Star:boolean
     **/
   SalesforceMessageFilters = [
-    {Label:"clients/bigone", Header:"X-SFDC-X-Account-Number", Values:["123456"], Star:true },
+    {Label:"clients/bigone", Header:SFDC_ACCOUNT_NUMBER_HEADER_NAME, Values:["123456"], Star:true },
 
     //Special tags
     {Label:"sbr/team", Header:"X-SFDC-X-SBR-Group", Values:["My Product"] },

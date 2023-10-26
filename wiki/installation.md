@@ -7,12 +7,11 @@ This project uses the following elements:
 - Node.js - you must install from the correct source.
 
     ```
-    $ sudo dnf install -y gcc-c++ make
-    $ sudo curl -sL https://rpm.nodesource.com/setup_12.x | sudo -E bash -
-    $ sudo dnf install nodejs --enablerepo=nodesource
+    $ sudo yum install https://rpm.nodesource.com/pub_20.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
+    $ sudo yum install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1
     ```
     
-    If the source repo isn't "nodesource" then disable the repo dnf is trying to install from
+    - The official documentation here: [https://github.com/nodesource/distributions](https://github.com/nodesource/distributions)
 
 - A tool called `clasp`
 
