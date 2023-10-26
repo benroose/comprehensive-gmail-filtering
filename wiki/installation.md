@@ -40,7 +40,7 @@ $ clasp login
 // you will use your 'username@redhat.com' gmail account
 $ cd Huntress
 // clone this repo into your project
-$ git clone git@gitlab.cee.redhat.com:phagerma/Filterbeast.git .
+$ git clone git@github.com:scrith/comprehensive-gmail-filtering.git .
 ~~~
 
 ## Step 2 - Create the GAS Project
